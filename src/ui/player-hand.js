@@ -18,9 +18,9 @@ template.innerHTML = `
       display: flex;
       flex-wrap: wrap;
       justify-content: center;
-      gap: 6px;
-      padding: 12px;
-      min-height: calc(var(--card-height, 104px) + 24px);
+      gap: 5px;
+      padding: 6px;
+      min-height: calc(var(--card-height, 104px) * 0.85 + 12px);
     }
     .hand-container.disabled {
       opacity: 0.5;

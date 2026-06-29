@@ -50,6 +50,7 @@ export async function takeTurn(state, playerId, difficulty) {
   const strategy = getStrategy(difficulty);
   /** @type {PlayerAction[]} */
   const actions = [];
+  const player = state.players.find(p => p.id === playerId);
 
   // 1. DRAW
   await wait(getThinkingDelay());
@@ -66,21 +67,27 @@ export async function takeTurn(state, playerId, difficulty) {
     drawnCard = state.discardPile[state.discardPile.length - 1];
   }
 
-  // 2. LAY DOWN PHASE (if possible)
-  await wait(getThinkingDelay());
-  const layDown = strategy.attemptLayDown(state, playerId);
-  if (layDown) {
-    actions.push({
-      type: 'laydown',
-      playerId,
-      payload: { groups: layDown }
-    });
+  // 2. LAY DOWN PHASE (if possible and not already laid down)
+  let justLaidDown = false;
+  if (!player.hasLaidDown) {
+    await wait(getThinkingDelay());
+    const layDown = strategy.attemptLayDown(state, playerId);
+    if (layDown) {
+      actions.push({
+        type: 'laydown',
+        playerId,
+        payload: { groups: layDown }
+      });
+      justLaidDown = true;
+    }
+  }
 
-    // 3. HIT (after laying down)
+  // 3. HIT — attempt if phase is already down (this turn OR previous turns)
+  if (player.hasLaidDown || justLaidDown) {
     await wait(getThinkingDelay());
     const hits = strategy.attemptHits(state, playerId);
     for (const hit of hits) {
-      await wait(Math.min(getThinkingDelay(), 1000)); // Shorter delay per hit
+      await wait(Math.min(getThinkingDelay(), 800));
       actions.push({
         type: 'hit',
         playerId,

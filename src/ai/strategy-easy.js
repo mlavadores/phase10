@@ -49,6 +49,7 @@ export function chooseDrawSource(state, playerId) {
  * Choose which card to discard (Easy strategy).
  * Discards a random card with lowest utility score.
  * Never discards Wild cards unless forced.
+ * Excludes cards that could be used for hitting (smarter discard).
  * @param {GameState} state
  * @param {string} playerId
  * @param {Card | null} drawnFromDiscard - Card drawn from discard (cannot be discarded back)
@@ -60,11 +61,35 @@ export function chooseDiscard(state, playerId, drawnFromDiscard) {
 
   const phaseNumber = getPlayerPhaseNumber(state, playerId);
 
-  // Score each card by utility
+  // Identify cards that could be hit (should NOT be discarded)
+  const hittableIds = new Set();
+  if (player.hasLaidDown) {
+    for (const card of player.hand) {
+      if (card.type === 'skip') continue;
+      for (const targetPlayer of state.players) {
+        if (targetPlayer.laidDownGroups.length === 0) continue;
+        const targetPhase = getPlayerPhaseNumber(state, targetPlayer.id);
+        const definition = getPhaseDefinition(targetPhase);
+        if (!definition) continue;
+        for (let gi = 0; gi < targetPlayer.laidDownGroups.length; gi++) {
+          const group = targetPlayer.laidDownGroups[gi];
+          const groupDef = definition.groups[gi];
+          if (!groupDef) continue;
+          if (validateHit(card, group, groupDef)) {
+            hittableIds.add(card.id);
+          }
+        }
+      }
+    }
+  }
+
+  // Score each card by utility, excluding hittable and non-discardable cards
   const scored = player.hand
     .filter(c => {
       // Cannot discard the card just drawn from discard
       if (drawnFromDiscard && c.id === drawnFromDiscard.id) return false;
+      // Prefer not to discard cards that can be hit
+      if (hittableIds.has(c.id)) return false;
       return true;
     })
     .map(card => ({
@@ -74,8 +99,12 @@ export function chooseDiscard(state, playerId, drawnFromDiscard) {
     .sort((a, b) => a.utility - b.utility);
 
   if (scored.length === 0) {
-    // Fallback: must discard something
-    return player.hand[0];
+    // All cards are hittable or restricted — fall back to lowest utility from full hand
+    const fallback = player.hand
+      .filter(c => !(drawnFromDiscard && c.id === drawnFromDiscard.id))
+      .map(card => ({ card, utility: evaluateCardUtility(card, player.hand, phaseNumber) }))
+      .sort((a, b) => a.utility - b.utility);
+    return fallback.length > 0 ? fallback[0].card : player.hand[0];
   }
 
   // Pick from the bottom 3 lowest-utility cards randomly

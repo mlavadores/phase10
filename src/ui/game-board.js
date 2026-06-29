@@ -29,21 +29,25 @@ template.innerHTML = `
 
     .game-screen {
       flex-direction: column;
-      padding: 12px;
-      gap: 10px;
+      padding: 8px 12px;
+      gap: 6px;
       background: linear-gradient(180deg, #0f0f23 0%, #1a1a3e 100%);
+      height: 100%;
+      overflow: hidden;
     }
     .top-bar {
       display: flex;
       justify-content: space-between;
       align-items: flex-start;
       gap: 12px;
+      flex-shrink: 0;
     }
     .side-panel {
       display: flex;
       flex-direction: column;
-      gap: 10px;
-      min-width: 180px;
+      gap: 8px;
+      min-width: 160px;
+      max-width: 180px;
     }
     .center-area {
       flex: 1;
@@ -51,7 +55,9 @@ template.innerHTML = `
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 12px;
+      gap: 8px;
+      min-height: 0;
+      overflow-y: auto;
     }
     .piles {
       display: flex;
@@ -59,14 +65,14 @@ template.innerHTML = `
       align-items: center;
     }
     .pile {
-      width: var(--card-width, 72px);
-      height: var(--card-height, 104px);
+      width: calc(var(--card-width, 72px) * 0.8);
+      height: calc(var(--card-height, 104px) * 0.8);
       border-radius: var(--card-radius, 12px);
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
-      font-size: 0.75em;
+      font-size: 0.7em;
       font-weight: 600;
       text-align: center;
       transition: all 0.2s ease;
@@ -90,40 +96,43 @@ template.innerHTML = `
     }
     .opponent-area {
       display: flex;
-      gap: 3px;
+      gap: 2px;
       justify-content: center;
-      padding: 8px;
+      padding: 4px;
     }
     .opponent-card {
-      width: calc(var(--card-width, 72px) * 0.45);
-      height: calc(var(--card-height, 104px) * 0.45);
+      width: calc(var(--card-width, 72px) * 0.35);
+      height: calc(var(--card-height, 104px) * 0.35);
       background: linear-gradient(135deg, #1e293b, #334155);
       border: 1.5px solid #475569;
-      border-radius: 6px;
+      border-radius: 4px;
     }
     .table-area {
       display: flex;
-      gap: 10px;
+      gap: 8px;
       flex-wrap: wrap;
       justify-content: center;
-      min-height: 70px;
-      padding: 12px;
+      min-height: 50px;
+      max-height: 90px;
+      overflow-y: auto;
+      padding: 8px;
       background: rgba(255, 255, 255, 0.03);
       border: 1px solid rgba(255, 255, 255, 0.08);
-      border-radius: 14px;
+      border-radius: 12px;
       backdrop-filter: blur(4px);
+      width: 100%;
     }
     .laid-group {
       display: flex;
-      gap: 3px;
-      padding: 6px;
+      gap: 2px;
+      padding: 4px;
       border: 1px solid rgba(255, 255, 255, 0.12);
-      border-radius: 10px;
+      border-radius: 8px;
       background: rgba(255, 255, 255, 0.04);
     }
     .laid-group card-element {
-      --card-width: 46px;
-      --card-height: 66px;
+      --card-width: 38px;
+      --card-height: 54px;
     }
     .turn-indicator {
       text-align: center;
@@ -274,7 +283,10 @@ template.innerHTML = `
     .bottom-area {
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 6px;
+      flex-shrink: 0;
+      padding-top: 6px;
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
     }
     .toast {
       position: fixed;
