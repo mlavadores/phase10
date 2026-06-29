@@ -1,0 +1,12 @@
+{
+  "name": "phase10",
+  "version": "1.0.0",
+  "description": "Browser-based Phase 10 card game with multiplayer and AI",
+  "type": "module",
+  "scripts": {
+    "dev": "npx http-server . -p 3000 -c-1",
+    "lint": "npx eslint src/"
+  },
+  "keywords": ["phase10", "card-game", "webrtc", "multiplayer"],
+  "license": "MIT"
+}
