@@ -99,7 +99,7 @@ export class GameController {
       // Discard button: needs exactly 1 card selected during action phase
       const discardBtn = board.shadowRoot.querySelector('[data-testid="btn-discard"]');
       const isMyTurn = this._state.players[this._state.currentPlayerIndex].id === 
-        (this._state.players.find(p => !p.isAI) || this._state.players[0]).id;
+        this._getLocalPlayerId();
       if (isMyTurn && this._state.turnPhase === 'action') {
         discardBtn.disabled = e.detail.selectedCards.length !== 1;
       }
@@ -137,6 +137,7 @@ export class GameController {
    */
   startAIGame(playerName, difficulty) {
     this._state = this._session.startAIGame(playerName, difficulty);
+    this._board.setLocalPlayerId(this._state.players[0].id);
     this._board.showScreen('game');
     this._updateUI();
     this._board.addLog(`Game started: ${playerName} vs AI (${difficulty})`);
@@ -155,6 +156,7 @@ export class GameController {
 
       onPlayerJoined((opponentName) => {
         this._state = this._session.createOnlineGameState(playerName, opponentName);
+        this._board.setLocalPlayerId(this._state.players[0].id);
         // Broadcast initial state to guest
         const sync = this._session.getSync();
         if (sync) sync.broadcastState(this._state);
@@ -181,6 +183,10 @@ export class GameController {
       if (sync) {
         sync.onStateReceived((state) => {
           this._state = state;
+          // Guest is player[1] (second player)
+          if (!this._board._localPlayerId) {
+            this._board.setLocalPlayerId(state.players[1].id);
+          }
           this._board.showScreen('game');
           this._updateUI();
         });
@@ -202,6 +208,7 @@ export class GameController {
       return;
     }
     this._state = saved;
+    this._board.setLocalPlayerId(saved.players[0].id);
     this._session.startAIGame(saved.config.playerNames[0], saved.config.difficulty);
     this._state = saved; // Override the new state with saved
     this._board.showScreen('game');
@@ -214,7 +221,7 @@ export class GameController {
    */
   undo() {
     if (!this._state) return;
-    const localPlayer = this._state.players.find(p => !p.isAI);
+    const localPlayer = this._getLocalPlayer();
     if (!localPlayer || !canUndo(this._state, localPlayer.id)) {
       this._board.showMessage('Cannot undo right now');
       return;
@@ -251,7 +258,7 @@ export class GameController {
   _performHit(targetPlayerId, targetGroupIndex) {
     if (!this._state) return;
 
-    const localPlayer = this._state.players.find(p => !p.isAI);
+    const localPlayer = this._getLocalPlayer();
     if (!localPlayer) return;
 
     const selectedCards = this._board.playerHand.getSelectedCards();
@@ -294,7 +301,7 @@ export class GameController {
   _handlePlayerDraw(source) {
     if (!this._state || this._aiTurnInProgress) return;
 
-    const localPlayer = this._state.players.find(p => !p.isAI);
+    const localPlayer = this._getLocalPlayer();
     if (!localPlayer) return;
 
     // Must be local player's turn
@@ -321,7 +328,7 @@ export class GameController {
     this._hitModeActive = false;
     this._board.setHitMode(false);
 
-    const localPlayer = this._state.players.find(p => !p.isAI);
+    const localPlayer = this._getLocalPlayer();
     if (!localPlayer) return;
 
     /** @type {PlayerAction} */
@@ -357,7 +364,7 @@ export class GameController {
   _handleLayDown() {
     if (!this._state || this._aiTurnInProgress) return;
 
-    const localPlayer = this._state.players.find(p => !p.isAI);
+    const localPlayer = this._getLocalPlayer();
     if (!localPlayer) return;
 
     const selectedCards = this._board.playerHand.getSelectedCards();
@@ -673,7 +680,7 @@ export class GameController {
     this._board.updateState(this._state);
 
     // Update undo button
-    const localPlayer = this._state.players.find(p => !p.isAI);
+    const localPlayer = this._getLocalPlayer();
     const undoBtn = this._board.shadowRoot.querySelector('[data-testid="btn-undo"]');
     if (undoBtn && localPlayer) {
       undoBtn.disabled = !canUndo(this._state, localPlayer.id);
@@ -708,5 +715,23 @@ export class GameController {
         this._board.addLog(`${name} hit a card onto a group`);
         break;
     }
+  }
+
+  /**
+   * Get local player ID.
+   * @returns {string}
+   */
+  _getLocalPlayerId() {
+    return this._board._localPlayerId || (this._state.players.find(p => !p.isAI) || this._state.players[0]).id;
+  }
+
+  /**
+   * Get local player object.
+   * @returns {import('../types.js').Player | undefined}
+   */
+  _getLocalPlayer() {
+    if (!this._state) return undefined;
+    const id = this._getLocalPlayerId();
+    return this._state.players.find(p => p.id === id);
   }
 }

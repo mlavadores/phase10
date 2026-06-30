@@ -478,6 +478,7 @@ export class GameBoard extends HTMLElement {
     this._drawPile = this.shadowRoot.querySelector('[data-testid="draw-pile"]');
     this._discardPile = this.shadowRoot.querySelector('[data-testid="discard-pile"]');
     this._toast = this.shadowRoot.querySelector('[data-testid="toast"]');
+    this._localPlayerId = null;
   }
 
   connectedCallback() {
@@ -495,9 +496,19 @@ export class GameBoard extends HTMLElement {
     this._gameScreen.classList.toggle('active', screen === 'game');
   }
 
+  /**
+   * Set the local player ID so the board knows whose hand to show.
+   * @param {string} playerId
+   */
+  setLocalPlayerId(playerId) {
+    this._localPlayerId = playerId;
+  }
+
   updateState(state) {
     const currentPlayer = state.players[state.currentPlayerIndex];
-    const localPlayer = state.players.find(p => !p.isAI) || state.players[0];
+    const localPlayer = this._localPlayerId
+      ? state.players.find(p => p.id === this._localPlayerId)
+      : state.players.find(p => !p.isAI) || state.players[0];
     const opponent = state.players.find(p => p.id !== localPlayer.id);
 
     this._playerHand.setCards(localPlayer.hand);
