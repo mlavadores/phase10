@@ -159,7 +159,14 @@ export class GameController {
         this._board.setLocalPlayerId(this._state.players[0].id);
         // Broadcast initial state to guest
         const sync = this._session.getSync();
-        if (sync) sync.broadcastState(this._state);
+        if (sync) {
+          sync.broadcastState(this._state);
+          
+          // Listen for guest actions
+          sync.onActionReceived((action) => {
+            this._handleRemoteAction(action);
+          });
+        }
         this._board.showScreen('game');
         this._updateUI();
         this._board.addLog(`${opponentName} joined! Game started.`);
@@ -544,12 +551,16 @@ export class GameController {
 
     if (isRoundOver(this._state)) {
       await this._endRound();
+      this._broadcastIfOnline();
       return;
     }
 
     // Advance turn
     this._state = nextTurn(this._state);
     this._updateUI();
+
+    // Broadcast the turn change to guest
+    this._broadcastIfOnline();
 
     // Save game state
     if (this._session.getMode() === 'ai') {
@@ -737,5 +748,73 @@ export class GameController {
     if (!this._state) return undefined;
     const id = this._getLocalPlayerId();
     return this._state.players.find(p => p.id === id);
+  }
+
+  /**
+   * Broadcast current state to guest if we're the online host.
+   */
+  _broadcastIfOnline() {
+    if (this._session.getMode() === 'online' && this._session.isHost()) {
+      const sync = this._session.getSync();
+      if (sync) sync.broadcastState(this._state);
+    }
+  }
+
+  /**
+   * Handle an action received from the remote guest player.
+   * Host validates and applies it, then broadcasts the updated state.
+   * @param {PlayerAction} action
+   */
+  _handleRemoteAction(action) {
+    if (!this._state) return;
+
+    const { newState, valid, error } = processAction(this._state, action);
+    if (!valid) {
+      console.warn('Remote action rejected:', error);
+      // Broadcast current state anyway so guest re-syncs
+      this._broadcastIfOnline();
+      return;
+    }
+
+    this._state = newState;
+    this._updateUI();
+    this._logAction(action);
+
+    // If action was a discard, handle post-discard (turn advance, round end)
+    if (action.type === 'discard') {
+      // Handle Skip card
+      if (action.payload.card && action.payload.card.type === 'skip') {
+        const opponent = this._state.players.find(p => p.id !== action.playerId);
+        if (opponent) {
+          const { newState: skippedState } = processAction(this._state, {
+            type: 'skip-target',
+            playerId: action.playerId,
+            payload: { targetPlayerId: opponent.id }
+          });
+          if (skippedState) this._state = skippedState;
+        }
+      }
+      this._afterDiscardOnline();
+    } else {
+      // Broadcast state after any non-discard action
+      this._broadcastIfOnline();
+    }
+  }
+
+  /**
+   * Post-discard handling for online mode (host side after guest discards).
+   */
+  async _afterDiscardOnline() {
+    if (!this._state) return;
+
+    if (isRoundOver(this._state)) {
+      await this._endRound();
+      this._broadcastIfOnline();
+      return;
+    }
+
+    this._state = nextTurn(this._state);
+    this._updateUI();
+    this._broadcastIfOnline();
   }
 }
