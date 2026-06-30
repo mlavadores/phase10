@@ -177,20 +177,24 @@ export class GameController {
   async joinOnlineGame(playerName, roomCode) {
     try {
       await this._session.joinOnlineSession(playerName, roomCode);
+      
+      // Mark this client as guest IMMEDIATELY
+      this._isGuest = true;
 
-      // Listen for state updates from host
+      // Register state handler BEFORE the join message triggers host response
       const sync = this._session.getSync();
       if (sync) {
         sync.onStateReceived((state) => {
           this._state = state;
-          // Guest is player[1] (second player)
-          if (!this._board._localPlayerId) {
-            this._board.setLocalPlayerId(state.players[1].id);
-          }
+          // Guest is ALWAYS player[1]
+          this._board.setLocalPlayerId(state.players[1].id);
           this._board.showScreen('game');
           this._updateUI();
         });
       }
+
+      // NOW send the join message (which triggers host to broadcast state)
+      this._session.sendJoinMessage(playerName);
 
       this._board.showMessage('Connected! Waiting for game to start...');
     } catch (err) {

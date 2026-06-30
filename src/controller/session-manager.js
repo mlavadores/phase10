@@ -115,9 +115,18 @@ export class SessionManager {
     this._channel = new DataChannel(this._peer);
     this._sync = new GameSync(this._channel, false);
 
-    // Send join message to host
-    this._channel.sendJoin(playerName);
+    // Do NOT send join message here — controller will do it after registering handlers
     this._state = 'playing';
+  }
+
+  /**
+   * Send the join message to host (called AFTER handlers are registered).
+   * @param {string} playerName
+   */
+  sendJoinMessage(playerName) {
+    if (this._channel) {
+      this._channel.sendJoin(playerName);
+    }
   }
 
   /**
