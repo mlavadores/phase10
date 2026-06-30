@@ -75,6 +75,9 @@ template.innerHTML = `
       color: #f1f5f9;
       backdrop-filter: blur(4px);
       transition: border-color 0.2s;
+      box-sizing: border-box;
+      -webkit-appearance: none;
+      appearance: none;
     }
     input::placeholder { color: rgba(255, 255, 255, 0.3); }
     input:focus, select:focus { border-color: #6366f1; outline: none; box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2); }

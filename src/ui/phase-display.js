@@ -20,7 +20,7 @@ template.innerHTML = `
     .player-phase {
       display: flex;
       flex-direction: column;
-      gap: 3px;
+      gap: 2px;
       font-size: 0.8em;
     }
     .player-name {
@@ -29,26 +29,29 @@ template.innerHTML = `
       text-overflow: ellipsis;
       white-space: nowrap;
       color: #e2e8f0;
-      font-size: 0.9em;
+      font-size: 0.85em;
     }
     .phase-info {
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 4px;
       flex-wrap: wrap;
     }
     .phase-number {
       background: linear-gradient(135deg, #6366f1, #8b5cf6);
       color: #fff;
       border-radius: 4px;
-      padding: 1px 6px;
+      padding: 1px 5px;
       font-weight: 700;
-      font-size: 0.8em;
+      font-size: 0.75em;
       white-space: nowrap;
     }
     .phase-desc {
-      font-size: 0.75em;
+      font-size: 0.7em;
       color: #64748b;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
     .completed-indicator {
       color: #4ade80;

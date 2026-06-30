@@ -350,28 +350,55 @@ template.innerHTML = `
     @media (max-width: 900px) {
       .game-screen {
         grid-template-columns: 1fr;
-        grid-template-rows: auto auto 1fr auto;
+        grid-template-rows: auto auto 1fr auto auto;
       }
       .left-sidebar {
         flex-direction: row;
-        padding: 8px;
+        padding: 6px 8px;
         border-right: none;
         border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-        gap: 8px;
+        gap: 6px;
         overflow-x: auto;
-        align-items: center;
+        align-items: stretch;
+        flex-wrap: nowrap;
       }
-      .left-sidebar .sidebar-section { padding: 6px 8px; }
+      .left-sidebar .sidebar-section {
+        padding: 4px 8px;
+        min-width: fit-content;
+        flex-shrink: 0;
+      }
+      .left-sidebar .sidebar-title {
+        font-size: 0.55em;
+        margin-bottom: 3px;
+      }
+      .opponent-label { font-size: 0.65em; }
+      .opponent-card { width: 10px; height: 14px; }
       .right-sidebar {
-        display: none;
+        display: flex;
+        max-height: 80px;
+        padding: 6px 8px;
+        border-left: none;
+        border-top: 1px solid rgba(255, 255, 255, 0.06);
+        overflow-y: auto;
       }
-      .status-bar { padding: 6px 8px; }
+      .status-bar { padding: 4px 8px; }
       .step-guide { display: none; }
-      .game-area { padding: 8px; gap: 10px; }
-      .bottom-bar { padding: 6px 8px 8px; }
-      .pile { width: 50px; height: 70px; }
-      .discard-pile card-element { --card-width: 50px; --card-height: 70px; }
-      .laid-group card-element { --card-width: 34px; --card-height: 48px; }
+      .turn-badge { font-size: 0.7em; padding: 3px 10px; }
+      .game-area { padding: 6px; gap: 8px; }
+      .table-area { padding: 6px 8px; min-height: 40px; }
+      .laid-group card-element { --card-width: 30px; --card-height: 42px; }
+      .piles-row { gap: 20px; }
+      .pile { width: 46px; height: 64px; font-size: 0.6em; }
+      .discard-pile card-element { --card-width: 46px; --card-height: 64px; }
+      .bottom-bar { padding: 4px 6px 6px; gap: 4px; }
+      .actions-row { gap: 4px; }
+      .action-btn { padding: 5px 10px; font-size: 0.65em; border-radius: 6px; }
+    }
+    @media (max-width: 400px) {
+      .left-sidebar .sidebar-section { padding: 3px 6px; }
+      .pile { width: 40px; height: 56px; }
+      .discard-pile card-element { --card-width: 40px; --card-height: 56px; }
+      .laid-group card-element { --card-width: 26px; --card-height: 36px; }
     }
     @media (prefers-reduced-motion: reduce) {
       .toast { animation: none; }

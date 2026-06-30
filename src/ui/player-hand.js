@@ -33,6 +33,26 @@ template.innerHTML = `
       position: relative;
       box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
     }
+    @media (max-width: 900px) {
+      .hand-container {
+        gap: 4px;
+        padding: 4px 6px;
+        min-height: 56px;
+      }
+      .hand-container card-element {
+        --card-width: 40px;
+        --card-height: 56px;
+      }
+      .hand-container card-element:hover {
+        transform: scale(1.2) translateY(-8px);
+      }
+    }
+    @media (max-width: 400px) {
+      .hand-container card-element {
+        --card-width: 34px;
+        --card-height: 48px;
+      }
+    }
     .hand-container.disabled {
       opacity: 0.5;
       pointer-events: none;

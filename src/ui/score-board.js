@@ -11,45 +11,41 @@ template.innerHTML = `
       display: block;
     }
     .score-container {
-      padding: 12px;
-      background: rgba(255, 255, 255, 0.04);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      border-radius: 12px;
-      backdrop-filter: blur(4px);
+      padding: 0;
     }
     .score-row {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 5px 0;
-      font-size: 0.85em;
+      padding: 2px 0;
+      font-size: 0.75em;
     }
     .score-name {
       font-weight: 600;
       color: #e2e8f0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      max-width: 80px;
     }
     .score-value {
-      font-size: 1.1em;
+      font-size: 1em;
       color: #a5b4fc;
       font-weight: 700;
+      white-space: nowrap;
     }
     .round-summary {
-      margin-top: 8px;
-      padding-top: 8px;
+      margin-top: 6px;
+      padding-top: 6px;
       border-top: 1px solid rgba(255, 255, 255, 0.1);
-      font-size: 0.8em;
+      font-size: 0.7em;
       color: #94a3b8;
     }
     .round-penalty {
       color: #f87171;
     }
     h3 {
-      margin: 0 0 8px;
-      font-size: 0.8em;
-      color: #64748b;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      font-weight: 600;
+      display: none;
     }
   </style>
   <div class="score-container" role="region" aria-label="Scores" data-testid="score-board">
