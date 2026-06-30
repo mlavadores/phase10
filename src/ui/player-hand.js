@@ -18,13 +18,20 @@ template.innerHTML = `
       display: flex;
       flex-wrap: wrap;
       justify-content: center;
-      gap: 5px;
-      padding: 6px;
-      min-height: 62px;
+      gap: 8px;
+      padding: 8px 12px;
+      min-height: 78px;
     }
     .hand-container card-element {
-      --card-width: 48px;
-      --card-height: 68px;
+      --card-width: 54px;
+      --card-height: 76px;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .hand-container card-element:hover {
+      transform: scale(1.3) translateY(-12px);
+      z-index: 10;
+      position: relative;
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
     }
     .hand-container.disabled {
       opacity: 0.5;

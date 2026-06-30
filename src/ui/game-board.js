@@ -33,7 +33,10 @@ template.innerHTML = `
       grid-template-columns: 1fr;
       height: 100vh;
       padding: 0;
-      background: linear-gradient(160deg, #0f0f23 0%, #1a1a3e 40%, #0f172a 100%);
+      background: 
+        radial-gradient(ellipse at 25% 75%, rgba(6, 95, 100, 0.15) 0%, transparent 50%),
+        radial-gradient(ellipse at 75% 25%, rgba(99, 102, 241, 0.06) 0%, transparent 50%),
+        linear-gradient(160deg, #0a0e1a 0%, #0f172a 40%, #0d1b2a 100%);
     }
 
     /* --- TOP BAR: opponent info + game status --- */
@@ -112,8 +115,33 @@ template.innerHTML = `
     .step-guide .arrow { color: #334155; font-size: 0.7em; }
     .top-right {
       display: flex;
-      gap: 8px;
+      gap: 12px;
       align-items: center;
+    }
+    .opponent-info {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 4px 10px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 10px;
+    }
+    .opponent-cards {
+      display: flex;
+      gap: 2px;
+    }
+    .opponent-card {
+      width: 12px;
+      height: 18px;
+      background: linear-gradient(135deg, #334155, #475569);
+      border: 1px solid #64748b;
+      border-radius: 2px;
+    }
+    .opponent-label {
+      font-size: 0.7em;
+      color: #94a3b8;
+      font-weight: 500;
     }
     .info-chip {
       padding: 4px 10px;
@@ -160,8 +188,8 @@ template.innerHTML = `
       background: rgba(255, 255, 255, 0.03);
     }
     .laid-group card-element {
-      --card-width: 40px;
-      --card-height: 56px;
+      --card-width: 42px;
+      --card-height: 60px;
     }
     .laid-group.hit-target {
       border-color: #3b82f6;
@@ -174,8 +202,8 @@ template.innerHTML = `
       align-items: center;
     }
     .pile {
-      width: 50px;
-      height: 70px;
+      width: 56px;
+      height: 78px;
       border-radius: 10px;
       display: flex;
       align-items: center;
@@ -192,18 +220,35 @@ template.innerHTML = `
       background: linear-gradient(135deg, #1e293b, #334155);
       border: 2px solid #475569;
       color: #64748b;
+      transition: all 0.3s ease;
+    }
+    .draw-pile.draw-ready {
+      border-color: #10b981;
+      box-shadow: 0 0 20px rgba(16, 185, 129, 0.5), 0 0 40px rgba(16, 185, 129, 0.2);
+      color: #a7f3d0;
+      animation: draw-glow 1.5s ease-in-out infinite alternate;
+    }
+    @keyframes draw-glow {
+      from { box-shadow: 0 0 15px rgba(16, 185, 129, 0.4); }
+      to { box-shadow: 0 0 30px rgba(16, 185, 129, 0.7), 0 0 50px rgba(16, 185, 129, 0.2); }
     }
     .discard-pile {
       background: rgba(255, 255, 255, 0.03);
       border: 2px dashed rgba(255, 255, 255, 0.12);
       color: #475569;
       position: relative;
+      transition: all 0.3s ease;
+    }
+    .discard-pile.draw-ready {
+      border-color: #10b981;
+      border-style: solid;
+      box-shadow: 0 0 15px rgba(16, 185, 129, 0.4);
     }
     .discard-pile card-element {
       position: absolute;
       top: 0; left: 0;
-      --card-width: 50px;
-      --card-height: 70px;
+      --card-width: 56px;
+      --card-height: 78px;
     }
     /* Banners */
     .banner-area {
@@ -444,6 +489,12 @@ export class GameBoard extends HTMLElement {
     this._renderDiscardPile(state);
     this._drawPile.textContent = `Draw (${state.drawPile.length})`;
     this._drawPile.setAttribute('aria-label', `Draw pile, ${state.drawPile.length} cards`);
+
+    // Glow effect on piles during draw phase
+    const isMyTurn = state.players[state.currentPlayerIndex].id === localPlayer.id;
+    const isDrawPhase = isMyTurn && state.turnPhase === 'draw';
+    this._drawPile.classList.toggle('draw-ready', isDrawPhase);
+    this._discardPile.classList.toggle('draw-ready', isDrawPhase && state.discardPile.length > 0);
   }
 
   showMessage(text, duration = 3000) {
