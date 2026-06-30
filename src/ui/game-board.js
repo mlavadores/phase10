@@ -160,8 +160,8 @@ template.innerHTML = `
       background: rgba(255, 255, 255, 0.03);
     }
     .laid-group card-element {
-      --card-width: 36px;
-      --card-height: 52px;
+      --card-width: 40px;
+      --card-height: 56px;
     }
     .laid-group.hit-target {
       border-color: #3b82f6;
@@ -174,8 +174,8 @@ template.innerHTML = `
       align-items: center;
     }
     .pile {
-      width: 56px;
-      height: 80px;
+      width: 50px;
+      height: 70px;
       border-radius: 10px;
       display: flex;
       align-items: center;
@@ -202,8 +202,8 @@ template.innerHTML = `
     .discard-pile card-element {
       position: absolute;
       top: 0; left: 0;
-      --card-width: 56px;
-      --card-height: 80px;
+      --card-width: 50px;
+      --card-height: 70px;
     }
     /* Banners */
     .banner-area {

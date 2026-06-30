@@ -20,7 +20,11 @@ template.innerHTML = `
       justify-content: center;
       gap: 5px;
       padding: 6px;
-      min-height: calc(var(--card-height, 104px) * 0.85 + 12px);
+      min-height: 62px;
+    }
+    .hand-container card-element {
+      --card-width: 48px;
+      --card-height: 68px;
     }
     .hand-container.disabled {
       opacity: 0.5;
