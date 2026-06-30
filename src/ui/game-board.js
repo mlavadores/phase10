@@ -1,8 +1,8 @@
 /**
  * Phase 10 — Game Board Web Component
  * 
- * Root game container. Manages screen routing (menu/game/results),
- * holds all child components, and pushes state to children.
+ * Root game container. Full-viewport CSS Grid layout.
+ * No scrollbars — everything fits in the screen.
  */
 
 import './card-element.js';
@@ -25,309 +25,297 @@ template.innerHTML = `
       position: relative;
     }
     .screen { display: none; width: 100%; height: 100%; }
-    .screen.active { display: flex; }
+    .screen.active { display: grid; }
 
+    /* === GAME LAYOUT: 3-row grid === */
     .game-screen {
-      flex-direction: column;
-      padding: 8px 12px;
-      gap: 6px;
-      background: linear-gradient(180deg, #0f0f23 0%, #1a1a3e 100%);
-      height: 100%;
-      overflow: hidden;
+      grid-template-rows: auto 1fr auto;
+      grid-template-columns: 1fr;
+      height: 100vh;
+      padding: 0;
+      background: linear-gradient(160deg, #0f0f23 0%, #1a1a3e 40%, #0f172a 100%);
     }
+
+    /* --- TOP BAR: opponent info + game status --- */
     .top-bar {
       display: flex;
+      align-items: center;
       justify-content: space-between;
-      align-items: flex-start;
+      padding: 8px 16px;
+      background: rgba(0, 0, 0, 0.3);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
       gap: 12px;
-      flex-shrink: 0;
     }
-    .side-panel {
+    .top-left {
       display: flex;
-      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+    }
+    .opponent-info {
+      display: flex;
+      align-items: center;
       gap: 8px;
-      min-width: 160px;
-      max-width: 180px;
     }
-    .center-area {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      min-height: 0;
-      overflow-y: auto;
-    }
-    .piles {
-      display: flex;
-      gap: 20px;
-      align-items: center;
-    }
-    .pile {
-      width: calc(var(--card-width, 72px) * 0.8);
-      height: calc(var(--card-height, 104px) * 0.8);
-      border-radius: var(--card-radius, 12px);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      font-size: 0.7em;
-      font-weight: 600;
-      text-align: center;
-      transition: all 0.2s ease;
-    }
-    .pile:hover { transform: scale(1.05); box-shadow: 0 8px 24px rgba(0,0,0,0.4); }
-    .pile:focus-visible { outline: 2px solid #6366f1; outline-offset: 3px; }
-    .draw-pile {
-      background: linear-gradient(135deg, #1e293b, #334155);
-      border: 2px solid #475569;
-      color: #94a3b8;
-    }
-    .discard-pile {
-      background: rgba(255, 255, 255, 0.03);
-      border: 2px dashed rgba(255, 255, 255, 0.15);
-      color: #64748b;
-      position: relative;
-    }
-    .discard-pile card-element {
-      position: absolute;
-      top: 0; left: 0;
-    }
-    .opponent-area {
+    .opponent-cards {
       display: flex;
       gap: 2px;
-      justify-content: center;
-      padding: 4px;
     }
     .opponent-card {
-      width: calc(var(--card-width, 72px) * 0.35);
-      height: calc(var(--card-height, 104px) * 0.35);
-      background: linear-gradient(135deg, #1e293b, #334155);
-      border: 1.5px solid #475569;
-      border-radius: 4px;
+      width: 18px;
+      height: 26px;
+      background: linear-gradient(135deg, #334155, #475569);
+      border: 1px solid #64748b;
+      border-radius: 3px;
+    }
+    .opponent-label {
+      font-size: 0.75em;
+      color: #94a3b8;
+    }
+    .top-center {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .turn-badge {
+      padding: 4px 12px;
+      border-radius: 16px;
+      background: rgba(99, 102, 241, 0.15);
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      color: #a5b4fc;
+      font-size: 0.75em;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .step-guide {
+      display: flex;
+      gap: 4px;
+      align-items: center;
+    }
+    .step-guide .step {
+      padding: 3px 8px;
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.04);
+      color: #475569;
+      font-size: 0.7em;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+    .step-guide .step.active {
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      color: #fff;
+      font-weight: 600;
+    }
+    .step-guide .step.done {
+      background: rgba(34, 197, 94, 0.15);
+      color: #4ade80;
+    }
+    .step-guide .arrow { color: #334155; font-size: 0.7em; }
+    .top-right {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    .info-chip {
+      padding: 4px 10px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      font-size: 0.7em;
+      color: #94a3b8;
+    }
+    .info-chip strong { color: #e2e8f0; }
+
+    /* --- MIDDLE: game area (table + piles) --- */
+    .game-area {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      padding: 12px;
+      position: relative;
     }
     .table-area {
       display: flex;
       gap: 8px;
       flex-wrap: wrap;
       justify-content: center;
-      min-height: 50px;
-      max-height: 90px;
-      overflow-y: auto;
-      padding: 8px;
-      background: rgba(255, 255, 255, 0.03);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      border-radius: 12px;
-      backdrop-filter: blur(4px);
-      width: 100%;
+      padding: 10px 16px;
+      background: rgba(255, 255, 255, 0.025);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 14px;
+      min-height: 46px;
+    }
+    .table-area:empty::after {
+      content: 'No phases laid down yet';
+      color: #334155;
+      font-size: 0.75em;
     }
     .laid-group {
       display: flex;
       gap: 2px;
-      padding: 4px;
-      border: 1px solid rgba(255, 255, 255, 0.12);
+      padding: 3px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
       border-radius: 8px;
-      background: rgba(255, 255, 255, 0.04);
+      background: rgba(255, 255, 255, 0.03);
     }
     .laid-group card-element {
-      --card-width: 38px;
-      --card-height: 54px;
-    }
-    .turn-indicator {
-      text-align: center;
-      font-weight: 600;
-      padding: 6px 16px;
-      border-radius: 20px;
-      background: rgba(99, 102, 241, 0.15);
-      border: 1px solid rgba(99, 102, 241, 0.3);
-      color: #a5b4fc;
-      font-size: 0.85em;
-      letter-spacing: 0.3px;
-    }
-    /* Step guide - shows current turn step clearly */
-    .step-guide {
-      display: flex;
-      gap: 6px;
-      align-items: center;
-      justify-content: center;
-      padding: 8px 16px;
-      background: rgba(255, 255, 255, 0.04);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      border-radius: 20px;
-      font-size: 0.78em;
-    }
-    .step-guide .step {
-      padding: 4px 10px;
-      border-radius: 8px;
-      background: rgba(255, 255, 255, 0.05);
-      color: #64748b;
-      transition: all 0.3s;
-      font-weight: 500;
-    }
-    .step-guide .step.active {
-      background: linear-gradient(135deg, #6366f1, #8b5cf6);
-      color: #fff;
-      font-weight: 600;
-      box-shadow: 0 2px 8px rgba(99, 102, 241, 0.4);
-    }
-    .step-guide .step.done {
-      background: rgba(34, 197, 94, 0.15);
-      color: #4ade80;
-      border: 1px solid rgba(34, 197, 94, 0.3);
-    }
-    .step-guide .step-arrow {
-      color: #475569;
-      font-size: 0.9em;
-    }
-    /* Phase ready banner */
-    .phase-ready-banner {
-      display: none;
-      padding: 10px 20px;
-      background: linear-gradient(135deg, rgba(34, 197, 94, 0.15), rgba(16, 185, 129, 0.1));
-      border: 1px solid rgba(34, 197, 94, 0.3);
-      color: #4ade80;
-      border-radius: 12px;
-      font-size: 0.85em;
-      font-weight: 600;
-      text-align: center;
-      animation: glow-pulse 2s ease-in-out infinite;
-    }
-    .phase-ready-banner.visible {
-      display: block;
-    }
-    .phase-ready-banner .hint {
-      font-weight: 400;
-      font-size: 0.85em;
-      opacity: 0.8;
-      margin-top: 4px;
-      color: #86efac;
-    }
-    .hit-mode-banner {
-      display: none;
-      padding: 8px 16px;
-      background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(99, 102, 241, 0.1));
-      border: 1px solid rgba(59, 130, 246, 0.3);
-      color: #93c5fd;
-      border-radius: 12px;
-      font-size: 0.82em;
-      font-weight: 600;
-      text-align: center;
-    }
-    .hit-mode-banner.visible { display: block; }
-    .action-buttons {
-      display: flex;
-      gap: 8px;
-      justify-content: center;
-      flex-wrap: wrap;
-    }
-    .action-btn {
-      padding: 10px 18px;
-      border: none;
-      border-radius: 10px;
-      font-weight: 600;
-      font-size: 0.82em;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      letter-spacing: 0.2px;
-      background: linear-gradient(135deg, #6366f1, #8b5cf6);
-      color: #fff;
-    }
-    .action-btn:disabled {
-      opacity: 0.3;
-      cursor: not-allowed;
-      transform: none;
-      box-shadow: none;
-      background: rgba(255, 255, 255, 0.08);
-      color: #64748b;
-    }
-    .action-btn:not(:disabled):hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
-    }
-    .action-btn:focus-visible { outline: 2px solid #6366f1; outline-offset: 3px; }
-    .action-btn.secondary {
-      background: rgba(255, 255, 255, 0.08);
-      color: #94a3b8;
-      border: 1px solid rgba(255, 255, 255, 0.12);
-    }
-    .action-btn.secondary:not(:disabled):hover {
-      background: rgba(255, 255, 255, 0.12);
-      color: #f1f5f9;
-      box-shadow: none;
-    }
-    .action-btn.laydown-ready {
-      background: linear-gradient(135deg, #22c55e, #16a34a);
-      color: #fff;
-      animation: glow-pulse 1.5s ease-in-out infinite;
-    }
-    .action-btn.discard-btn {
-      background: linear-gradient(135deg, #ef4444, #dc2626);
-      color: #fff;
-    }
-    .action-btn.hit-btn {
-      background: linear-gradient(135deg, #3b82f6, #2563eb);
-      color: #fff;
-    }
-    .action-btn.hit-btn:not(:disabled):hover {
-      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+      --card-width: 36px;
+      --card-height: 52px;
     }
     .laid-group.hit-target {
-      border: 2px solid #3b82f6;
+      border-color: #3b82f6;
       box-shadow: 0 0 12px rgba(59, 130, 246, 0.4);
       cursor: pointer;
     }
-    .laid-group.hit-target:hover {
-      box-shadow: 0 0 20px rgba(59, 130, 246, 0.6);
+    .piles-row {
+      display: flex;
+      gap: 24px;
+      align-items: center;
     }
-    .bottom-area {
+    .pile {
+      width: 56px;
+      height: 80px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 0.65em;
+      font-weight: 600;
+      text-align: center;
+      transition: all 0.15s ease;
+    }
+    .pile:hover { transform: scale(1.08); }
+    .pile:focus-visible { outline: 2px solid #6366f1; outline-offset: 3px; }
+    .draw-pile {
+      background: linear-gradient(135deg, #1e293b, #334155);
+      border: 2px solid #475569;
+      color: #64748b;
+    }
+    .discard-pile {
+      background: rgba(255, 255, 255, 0.03);
+      border: 2px dashed rgba(255, 255, 255, 0.12);
+      color: #475569;
+      position: relative;
+    }
+    .discard-pile card-element {
+      position: absolute;
+      top: 0; left: 0;
+      --card-width: 56px;
+      --card-height: 80px;
+    }
+    /* Banners */
+    .banner-area {
+      position: absolute;
+      top: 8px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 10;
+    }
+    .phase-ready-banner, .hit-mode-banner {
+      display: none;
+      padding: 6px 16px;
+      border-radius: 20px;
+      font-size: 0.75em;
+      font-weight: 600;
+      text-align: center;
+      white-space: nowrap;
+    }
+    .phase-ready-banner {
+      background: rgba(34, 197, 94, 0.12);
+      border: 1px solid rgba(34, 197, 94, 0.3);
+      color: #4ade80;
+    }
+    .phase-ready-banner.visible, .hit-mode-banner.visible { display: block; }
+    .phase-ready-banner .hint { display: none; }
+    .hit-mode-banner {
+      background: rgba(59, 130, 246, 0.12);
+      border: 1px solid rgba(59, 130, 246, 0.3);
+      color: #93c5fd;
+    }
+
+    /* --- BOTTOM: hand + action buttons --- */
+    .bottom-bar {
       display: flex;
       flex-direction: column;
       gap: 6px;
-      flex-shrink: 0;
-      padding-top: 6px;
+      padding: 8px 16px 12px;
+      background: rgba(0, 0, 0, 0.25);
       border-top: 1px solid rgba(255, 255, 255, 0.06);
     }
+    .actions-row {
+      display: flex;
+      gap: 6px;
+      justify-content: center;
+      align-items: center;
+    }
+    .action-btn {
+      padding: 7px 14px;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 0.72em;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      letter-spacing: 0.2px;
+      white-space: nowrap;
+    }
+    .action-btn:disabled {
+      opacity: 0.25;
+      cursor: default;
+      transform: none;
+      background: rgba(255, 255, 255, 0.05);
+      color: #475569;
+    }
+    .action-btn:not(:disabled):hover { transform: translateY(-1px); }
+    .action-btn:focus-visible { outline: 2px solid #6366f1; outline-offset: 2px; }
+    .action-btn.primary { background: linear-gradient(135deg, #6366f1, #8b5cf6); color: #fff; }
+    .action-btn.success { background: linear-gradient(135deg, #22c55e, #16a34a); color: #fff; }
+    .action-btn.danger { background: linear-gradient(135deg, #ef4444, #dc2626); color: #fff; }
+    .action-btn.info { background: linear-gradient(135deg, #3b82f6, #2563eb); color: #fff; }
+    .action-btn.ghost {
+      background: rgba(255, 255, 255, 0.06);
+      color: #64748b;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .action-btn.ghost:not(:disabled):hover { color: #e2e8f0; background: rgba(255, 255, 255, 0.1); }
+    .action-btn.laydown-ready {
+      background: linear-gradient(135deg, #22c55e, #16a34a);
+      color: #fff;
+      box-shadow: 0 0 12px rgba(34, 197, 94, 0.4);
+    }
+
+    /* Toast */
     .toast {
       position: fixed;
-      bottom: 24px;
+      bottom: 20px;
       left: 50%;
       transform: translateX(-50%);
-      background: rgba(30, 41, 59, 0.95);
+      background: rgba(15, 23, 42, 0.95);
       color: #f1f5f9;
-      padding: 12px 24px;
-      border-radius: 12px;
-      font-size: 0.9em;
+      padding: 10px 20px;
+      border-radius: 10px;
+      font-size: 0.8em;
       z-index: 500;
       border: 1px solid rgba(255, 255, 255, 0.1);
       backdrop-filter: blur(12px);
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-      animation: slide-up 0.3s ease;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+      animation: slide-up 0.25s ease;
     }
     .toast[hidden] { display: none; }
 
     @keyframes slide-up {
-      from { transform: translateX(-50%) translateY(20px); opacity: 0; }
-      to { transform: translateX(-50%) translateY(0); opacity: 1; }
-    }
-    @keyframes glow-pulse {
-      0%, 100% { box-shadow: 0 0 8px rgba(99, 102, 241, 0.2); }
-      50% { box-shadow: 0 0 20px rgba(99, 102, 241, 0.5); }
-    }
-
-    @media (min-width: 768px) {
-      .game-screen { flex-direction: column; }
-      .top-bar { flex-direction: row; }
+      from { opacity: 0; transform: translateX(-50%) translateY(10px); }
+      to { opacity: 1; transform: translateX(-50%) translateY(0); }
     }
     @media (max-width: 767px) {
-      .side-panel { flex-direction: row; min-width: auto; }
-      .top-bar { flex-direction: column; }
+      .top-bar { padding: 6px 8px; }
+      .step-guide { display: none; }
+      .game-area { padding: 8px; }
     }
     @media (prefers-reduced-motion: reduce) {
-      .turn-indicator { animation: none; }
       .toast { animation: none; }
-      .phase-ready-banner { animation: none; }
-      .action-btn.laydown-ready { animation: none; }
     }
   </style>
 
@@ -338,48 +326,56 @@ template.innerHTML = `
 
   <!-- Game Screen -->
   <div class="screen game-screen" data-testid="screen-game">
+
+    <!-- TOP BAR -->
     <div class="top-bar">
-      <div class="side-panel">
+      <div class="top-left">
         <phase-display></phase-display>
+      </div>
+      <div class="top-center">
+        <div class="turn-badge" data-testid="turn-indicator"></div>
+        <div class="step-guide" data-testid="step-guide">
+          <span class="step" data-step="draw">Draw</span>
+          <span class="arrow">›</span>
+          <span class="step" data-step="laydown">Lay Down</span>
+          <span class="arrow">›</span>
+          <span class="step" data-step="discard">Discard</span>
+        </div>
+      </div>
+      <div class="top-right">
+        <div class="opponent-info">
+          <span class="opponent-label" data-testid="opponent-label">Opponent</span>
+          <div class="opponent-cards" data-testid="opponent-area"></div>
+        </div>
         <score-board></score-board>
       </div>
-      <div class="center-area">
-        <div class="opponent-area" data-testid="opponent-area" aria-label="Opponent's cards"></div>
-        <div class="table-area" data-testid="table-area" aria-label="Laid-down phases"></div>
-        <div class="piles">
-          <div class="pile draw-pile" role="button" tabindex="0" aria-label="Draw pile" data-testid="draw-pile">Draw</div>
-          <div class="pile discard-pile" role="button" tabindex="0" aria-label="Discard pile" data-testid="discard-pile">Discard</div>
-        </div>
-        <div class="turn-indicator" data-testid="turn-indicator"></div>
-        <div class="step-guide" data-testid="step-guide">
-          <span class="step" data-step="draw">1. Draw</span>
-          <span class="step-arrow">→</span>
-          <span class="step" data-step="laydown">2. Lay Down (optional)</span>
-          <span class="step-arrow">→</span>
-          <span class="step" data-step="discard">3. Discard</span>
-        </div>
-        <div class="phase-ready-banner" data-testid="phase-ready-banner">
-          You can LAY DOWN your phase now!
-          <div class="hint">Select your cards, then press "Lay Down Phase"</div>
-        </div>
-        <div class="hit-mode-banner" data-testid="hit-mode-banner">
-          HIT MODE: Select 1 card, then click a group on the table to add it there
-        </div>
+    </div>
+
+    <!-- GAME AREA -->
+    <div class="game-area">
+      <div class="banner-area">
+        <div class="phase-ready-banner" data-testid="phase-ready-banner">Ready to lay down your phase!</div>
+        <div class="hit-mode-banner" data-testid="hit-mode-banner">Select 1 card, then click a group on the table</div>
       </div>
-      <div class="side-panel">
-        <game-log></game-log>
+      <div class="table-area" data-testid="table-area" aria-label="Laid-down phases"></div>
+      <div class="piles-row">
+        <div class="pile draw-pile" role="button" tabindex="0" aria-label="Draw pile" data-testid="draw-pile">Draw</div>
+        <div class="pile discard-pile" role="button" tabindex="0" aria-label="Discard pile" data-testid="discard-pile"></div>
       </div>
     </div>
-    <div class="bottom-area">
-      <div class="action-buttons" data-testid="action-buttons">
-        <button class="action-btn" data-testid="btn-laydown" disabled>Lay Down Phase</button>
-        <button class="action-btn hit-btn" data-testid="btn-hit" disabled>Hit (add to phase)</button>
-        <button class="action-btn discard-btn" data-testid="btn-discard" disabled>Discard Selected</button>
-        <button class="action-btn secondary" data-testid="btn-undo" disabled>Undo</button>
-        <button class="action-btn secondary" data-testid="btn-menu">Menu</button>
+
+    <!-- BOTTOM BAR -->
+    <div class="bottom-bar">
+      <div class="actions-row" data-testid="action-buttons">
+        <button class="action-btn success" data-testid="btn-laydown" disabled>Lay Down</button>
+        <button class="action-btn info" data-testid="btn-hit" disabled>Hit</button>
+        <button class="action-btn danger" data-testid="btn-discard" disabled>Discard</button>
+        <button class="action-btn ghost" data-testid="btn-undo" disabled>Undo</button>
+        <button class="action-btn ghost" data-testid="btn-menu">Menu</button>
       </div>
       <player-hand></player-hand>
     </div>
+
   </div>
 
   <!-- Toast -->
@@ -388,6 +384,7 @@ template.innerHTML = `
   <!-- Overlays -->
   <rules-panel></rules-panel>
   <phase-editor></phase-editor>
+  <game-log style="display:none"></game-log>
 `;
 
 export class GameBoard extends HTMLElement {
@@ -396,11 +393,8 @@ export class GameBoard extends HTMLElement {
     this.attachShadow({ mode: 'open' });
     this.shadowRoot.appendChild(template.content.cloneNode(true));
 
-    // Screen references
     this._menuScreen = this.shadowRoot.querySelector('.menu-screen');
     this._gameScreen = this.shadowRoot.querySelector('.game-screen');
-
-    // Component references
     this._menu = this.shadowRoot.querySelector('game-menu');
     this._playerHand = this.shadowRoot.querySelector('player-hand');
     this._phaseDisplay = this.shadowRoot.querySelector('phase-display');
@@ -410,6 +404,7 @@ export class GameBoard extends HTMLElement {
     this._phaseEditor = this.shadowRoot.querySelector('phase-editor');
     this._turnIndicator = this.shadowRoot.querySelector('[data-testid="turn-indicator"]');
     this._opponentArea = this.shadowRoot.querySelector('[data-testid="opponent-area"]');
+    this._opponentLabel = this.shadowRoot.querySelector('[data-testid="opponent-label"]');
     this._tableArea = this.shadowRoot.querySelector('[data-testid="table-area"]');
     this._drawPile = this.shadowRoot.querySelector('[data-testid="draw-pile"]');
     this._discardPile = this.shadowRoot.querySelector('[data-testid="discard-pile"]');
@@ -417,149 +412,76 @@ export class GameBoard extends HTMLElement {
   }
 
   connectedCallback() {
-    // Keyboard shortcuts
     document.addEventListener('keydown', (e) => {
       if (e.key === 'h' || e.key === '?') this._rulesPanel.show();
       if (e.key === 'u') this._emitAction('undo');
     });
-
-    // Menu button
     this.shadowRoot.querySelector('[data-testid="btn-menu"]')
       .addEventListener('click', () => this.showScreen('menu'));
-
-    // Rules button from menu
     this._menu.addEventListener('open-rules', () => this._rulesPanel.show());
   }
 
-  /**
-   * Switch between screens.
-   * @param {'menu' | 'game'} screen
-   */
   showScreen(screen) {
     this._menuScreen.classList.toggle('active', screen === 'menu');
     this._gameScreen.classList.toggle('active', screen === 'game');
   }
 
-  /**
-   * Push game state to all child components.
-   * @param {import('../types.js').GameState} state
-   */
   updateState(state) {
     const currentPlayer = state.players[state.currentPlayerIndex];
-
-    // Update player hand
     const localPlayer = state.players.find(p => !p.isAI) || state.players[0];
+    const opponent = state.players.find(p => p.id !== localPlayer.id);
+
     this._playerHand.setCards(localPlayer.hand);
     this._playerHand.setDisabled(currentPlayer.id !== localPlayer.id);
-
-    // Update phase display
     this._phaseDisplay.update(state.players, state.phaseList);
-
-    // Update scores
     this._scoreBoard.update(state.players);
-
-    // Update turn indicator
-    this._turnIndicator.textContent = `${currentPlayer.name}'s Turn — ${state.turnPhase.toUpperCase()}`;
-
-    // Update step guide
+    this._turnIndicator.textContent = `${currentPlayer.name} — ${state.turnPhase.toUpperCase()}`;
     this._updateStepGuide(state, localPlayer);
-
-    // Update phase-ready banner
     this._updatePhaseReadyBanner(state, localPlayer);
-
-    // Update action buttons state
     this._updateActionButtons(state, localPlayer);
-
-    // Update opponent area
-    const opponent = state.players.find(p => p.id !== localPlayer.id);
     this._renderOpponent(opponent);
-
-    // Update table area (laid-down groups)
     this._renderTable(state);
-
-    // Update discard pile top card
     this._renderDiscardPile(state);
-
-    // Update draw pile count
-    this._drawPile.textContent = `Draw\n(${state.drawPile.length})`;
+    this._drawPile.textContent = `Draw (${state.drawPile.length})`;
     this._drawPile.setAttribute('aria-label', `Draw pile, ${state.drawPile.length} cards`);
   }
 
-  /**
-   * Show a toast notification.
-   * @param {string} text
-   * @param {number} duration
-   */
   showMessage(text, duration = 3000) {
     this._toast.textContent = text;
     this._toast.hidden = false;
     setTimeout(() => { this._toast.hidden = true; }, duration);
   }
 
-  /**
-   * Add an entry to the game log.
-   * @param {string} message
-   */
-  addLog(message) {
-    this._gameLog.addEntry(message);
-  }
-
-  /** @returns {import('./game-menu.js').GameMenu} */
+  addLog(message) { this._gameLog.addEntry(message); }
   get menu() { return this._menu; }
-  /** @returns {import('./player-hand.js').PlayerHand} */
   get playerHand() { return this._playerHand; }
-  /** @returns {HTMLElement} */
   get drawPileEl() { return this._drawPile; }
-  /** @returns {HTMLElement} */
   get discardPileEl() { return this._discardPile; }
-  /** @returns {import('./rules-panel.js').RulesPanel} */
   get rulesPanel() { return this._rulesPanel; }
-  /** @returns {import('./phase-editor.js').PhaseEditor} */
   get phaseEditor() { return this._phaseEditor; }
 
-  /**
-   * Enable/disable hit mode (highlights table groups as targets).
-   * @param {boolean} enabled
-   */
   setHitMode(enabled) {
     const groups = this._tableArea.querySelectorAll('.laid-group');
     groups.forEach(g => g.classList.toggle('hit-target', enabled));
-    const banner = this.shadowRoot.querySelector('[data-testid="hit-mode-banner"]');
-    banner.classList.toggle('visible', enabled);
+    this.shadowRoot.querySelector('[data-testid="hit-mode-banner"]').classList.toggle('visible', enabled);
   }
 
   _updateStepGuide(state, localPlayer) {
     const guide = this.shadowRoot.querySelector('[data-testid="step-guide"]');
     const steps = guide.querySelectorAll('.step');
     const isMyTurn = state.players[state.currentPlayerIndex].id === localPlayer.id;
-
-    steps.forEach(s => { s.classList.remove('active', 'done'); });
-
-    if (!isMyTurn) {
-      // Not my turn - dim everything
-      guide.style.opacity = '0.4';
-      return;
-    }
+    steps.forEach(s => s.classList.remove('active', 'done'));
+    if (!isMyTurn) { guide.style.opacity = '0.3'; return; }
     guide.style.opacity = '1';
-
-    if (state.turnPhase === 'draw') {
-      steps[0].classList.add('active');
-    } else if (state.turnPhase === 'action') {
-      steps[0].classList.add('done');
-      steps[1].classList.add('active');
-    } else if (state.turnPhase === 'discard') {
-      steps[0].classList.add('done');
-      steps[1].classList.add('done');
-      steps[2].classList.add('active');
-    }
+    if (state.turnPhase === 'draw') steps[0].classList.add('active');
+    else if (state.turnPhase === 'action') { steps[0].classList.add('done'); steps[1].classList.add('active'); }
+    else { steps[0].classList.add('done'); steps[1].classList.add('done'); steps[2].classList.add('active'); }
   }
 
   _updatePhaseReadyBanner(state, localPlayer) {
     const banner = this.shadowRoot.querySelector('[data-testid="phase-ready-banner"]');
     const isMyTurn = state.players[state.currentPlayerIndex].id === localPlayer.id;
-    const canLayDown = isMyTurn && state.turnPhase === 'action' && !localPlayer.hasLaidDown;
-
-    banner.classList.toggle('visible', canLayDown);
+    banner.classList.toggle('visible', isMyTurn && state.turnPhase === 'action' && !localPlayer.hasLaidDown);
   }
 
   _updateActionButtons(state, localPlayer) {
@@ -567,31 +489,22 @@ export class GameBoard extends HTMLElement {
     const laydownBtn = this.shadowRoot.querySelector('[data-testid="btn-laydown"]');
     const discardBtn = this.shadowRoot.querySelector('[data-testid="btn-discard"]');
     const hitBtn = this.shadowRoot.querySelector('[data-testid="btn-hit"]');
-
-    // Lay Down button: enabled during action phase if player hasn't laid down yet
     const canLayDown = isMyTurn && state.turnPhase === 'action' && !localPlayer.hasLaidDown;
     laydownBtn.disabled = !canLayDown;
     laydownBtn.classList.toggle('laydown-ready', canLayDown);
-
-    // Hit button: enabled during action phase if player HAS laid down (can hit on groups)
-    const canHitNow = isMyTurn && state.turnPhase === 'action' && localPlayer.hasLaidDown;
-    hitBtn.disabled = !canHitNow;
-
-    // Discard button: enabled during action phase (player must discard to end turn)
-    const canDiscard = isMyTurn && state.turnPhase === 'action';
-    discardBtn.disabled = !canDiscard;
+    hitBtn.disabled = !(isMyTurn && state.turnPhase === 'action' && localPlayer.hasLaidDown);
+    discardBtn.disabled = !(isMyTurn && state.turnPhase === 'action');
   }
 
   _renderOpponent(opponent) {
     if (!opponent) return;
     this._opponentArea.innerHTML = '';
-    for (let i = 0; i < opponent.hand.length; i++) {
+    this._opponentLabel.textContent = `${opponent.name} (${opponent.hand.length})`;
+    for (let i = 0; i < Math.min(opponent.hand.length, 12); i++) {
       const div = document.createElement('div');
       div.className = 'opponent-card';
-      div.setAttribute('aria-hidden', 'true');
       this._opponentArea.appendChild(div);
     }
-    this._opponentArea.setAttribute('aria-label', `${opponent.name}: ${opponent.hand.length} cards`);
   }
 
   _renderTable(state) {
@@ -602,24 +515,19 @@ export class GameBoard extends HTMLElement {
         const group = player.laidDownGroups[gi];
         const groupEl = document.createElement('div');
         groupEl.className = 'laid-group';
-        groupEl.setAttribute('aria-label', `${player.name}'s phase group ${gi + 1}`);
         groupEl.setAttribute('data-player-id', player.id);
         groupEl.setAttribute('data-group-index', gi);
-        
         for (const card of group) {
           const cardEl = document.createElement('card-element');
           cardEl.setCard(card);
           groupEl.appendChild(cardEl);
         }
-
-        // Click handler for hitting
         groupEl.addEventListener('click', () => {
           this.dispatchEvent(new CustomEvent('hit-group-click', {
             bubbles: true, composed: true,
             detail: { targetPlayerId: player.id, targetGroupIndex: gi }
           }));
         });
-
         this._tableArea.appendChild(groupEl);
       }
     }
@@ -632,18 +540,11 @@ export class GameBoard extends HTMLElement {
       const cardEl = document.createElement('card-element');
       cardEl.setCard(topCard);
       this._discardPile.appendChild(cardEl);
-      this._discardPile.setAttribute('aria-label',
-        `Discard pile, top card: ${topCard.type === 'number' ? `${topCard.color} ${topCard.number}` : topCard.type}`);
-    } else {
-      this._discardPile.textContent = 'Discard';
-      this._discardPile.setAttribute('aria-label', 'Discard pile, empty');
     }
   }
 
   _emitAction(action) {
-    this.dispatchEvent(new CustomEvent('game-action', {
-      bubbles: true, composed: true, detail: { action }
-    }));
+    this.dispatchEvent(new CustomEvent('game-action', { bubbles: true, composed: true, detail: { action } }));
   }
 }
 
