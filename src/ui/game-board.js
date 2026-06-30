@@ -375,11 +375,11 @@ template.innerHTML = `
       .opponent-card { width: 10px; height: 14px; }
       .right-sidebar {
         display: flex;
-        max-height: 80px;
-        padding: 6px 8px;
+        max-height: 70px;
+        padding: 4px 8px;
         border-left: none;
         border-top: 1px solid rgba(255, 255, 255, 0.06);
-        overflow-y: auto;
+        overflow: hidden;
       }
       .status-bar { padding: 4px 8px; }
       .step-guide { display: none; }

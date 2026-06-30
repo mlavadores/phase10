@@ -192,11 +192,15 @@ export class GameController {
       const sync = this._session.getSync();
       if (sync) {
         sync.onStateReceived((state) => {
+          const prevState = this._state;
           this._state = state;
           // Guest is ALWAYS player[1]
           this._board.setLocalPlayerId(state.players[1].id);
           this._board.showScreen('game');
           this._updateUI();
+          
+          // Generate log entries by comparing states
+          this._generateLogsFromStateDiff(prevState, state);
         });
       }
 
@@ -757,6 +761,63 @@ export class GameController {
     if (this._session.getMode() === 'online' && this._session.isHost()) {
       const sync = this._session.getSync();
       if (sync) sync.broadcastState(this._state);
+    }
+  }
+
+  /**
+   * Generate log entries for the guest by comparing previous and new state.
+   * @param {GameState | null} prev
+   * @param {GameState} curr
+   */
+  _generateLogsFromStateDiff(prev, curr) {
+    if (!prev) {
+      this._board.addLog('Game started.');
+      return;
+    }
+
+    // Detect discard pile changes (someone discarded)
+    if (curr.discardPile.length > prev.discardPile.length) {
+      const newCard = curr.discardPile[curr.discardPile.length - 1];
+      // Figure out who discarded by checking whose hand shrunk
+      for (const cp of curr.players) {
+        const pp = prev.players.find(p => p.id === cp.id);
+        if (pp && cp.hand.length < pp.hand.length && !cp.hasLaidDown !== !pp.hasLaidDown === false) {
+          const desc = newCard.type === 'number' ? `${newCard.color} ${newCard.number}` : newCard.type;
+          this._board.addLog(`<span class="player-name">${cp.name}</span> discarded ${desc}`);
+          break;
+        }
+      }
+    }
+
+    // Detect draw (someone's hand grew and it's not from dealing)
+    if (prev.round === curr.round) {
+      for (const cp of curr.players) {
+        const pp = prev.players.find(p => p.id === cp.id);
+        if (pp && cp.hand.length > pp.hand.length && !cp.hasLaidDown) {
+          const source = curr.drawPile.length < prev.drawPile.length ? 'pile' : 'discard';
+          this._board.addLog(`<span class="player-name">${cp.name}</span> drew from ${source}`);
+          break;
+        }
+      }
+    }
+
+    // Detect phase lay-down
+    for (const cp of curr.players) {
+      const pp = prev.players.find(p => p.id === cp.id);
+      if (pp && cp.hasLaidDown && !pp.hasLaidDown) {
+        this._board.addLog(`<span class="player-name">${cp.name}</span> completed their phase!`);
+      }
+    }
+
+    // Detect turn change
+    if (curr.currentPlayerIndex !== prev.currentPlayerIndex) {
+      const newPlayer = curr.players[curr.currentPlayerIndex];
+      this._board.addLog(`${newPlayer.name}'s turn`);
+    }
+
+    // Detect round change
+    if (curr.round > prev.round) {
+      this._board.addLog(`Round ${curr.round} started`);
     }
   }
 

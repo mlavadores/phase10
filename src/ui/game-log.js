@@ -11,30 +11,33 @@ template.innerHTML = `
   <style>
     :host {
       display: block;
+      height: 100%;
     }
     .log-container {
-      padding: 12px;
+      padding: 10px;
       background: rgba(255, 255, 255, 0.04);
       border: 1px solid rgba(255, 255, 255, 0.08);
-      border-radius: 12px;
-      max-height: 160px;
+      border-radius: 10px;
+      height: 100%;
+      min-height: 60px;
+      max-height: 100%;
       overflow-y: auto;
-      backdrop-filter: blur(4px);
+      box-sizing: border-box;
     }
     h3 {
-      margin: 0 0 8px;
-      font-size: 0.7em;
+      margin: 0 0 6px;
+      font-size: 0.65em;
       color: #64748b;
       text-transform: uppercase;
       letter-spacing: 1.5px;
       font-weight: 600;
     }
     .log-entry {
-      font-size: 0.75em;
+      font-size: 0.72em;
       padding: 3px 0;
       color: #94a3b8;
       border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-      animation: fade-in 0.3s ease;
+      line-height: 1.4;
     }
     .log-entry:last-child {
       border-bottom: none;
@@ -43,17 +46,24 @@ template.innerHTML = `
       font-weight: 600;
       color: #a5b4fc;
     }
-    @keyframes fade-in {
-      from { opacity: 0; transform: translateY(-4px); }
-      to { opacity: 1; transform: translateY(0); }
+    .empty-msg {
+      font-size: 0.7em;
+      color: #334155;
+      font-style: italic;
     }
-    @media (prefers-reduced-motion: reduce) {
-      .log-entry { animation: none; }
+    @media (max-width: 900px) {
+      .log-container {
+        min-height: 50px;
+        max-height: 70px;
+        padding: 6px 8px;
+      }
+      h3 { font-size: 0.6em; margin-bottom: 4px; }
+      .log-entry { font-size: 0.65em; padding: 2px 0; }
     }
   </style>
   <div class="log-container" role="log" aria-label="Game actions" aria-live="polite" data-testid="game-log">
     <h3>Game Log</h3>
-    <div class="log-list"></div>
+    <div class="log-list"><span class="empty-msg">Waiting for actions...</span></div>
   </div>
 `;
 
