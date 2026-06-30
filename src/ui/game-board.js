@@ -27,10 +27,10 @@ template.innerHTML = `
     .screen { display: none; width: 100%; height: 100%; }
     .screen.active { display: grid; }
 
-    /* === GAME LAYOUT: 3-row grid === */
+    /* === GAME LAYOUT === */
     .game-screen {
-      grid-template-rows: auto 1fr auto;
-      grid-template-columns: 1fr;
+      grid-template-rows: 1fr;
+      grid-template-columns: 200px 1fr 200px;
       height: 100vh;
       padding: 0;
       background: 
@@ -39,48 +39,81 @@ template.innerHTML = `
         linear-gradient(160deg, #0a0e1a 0%, #0f172a 40%, #0d1b2a 100%);
     }
 
-    /* --- TOP BAR: opponent info + game status --- */
-    .top-bar {
+    /* --- LEFT SIDEBAR --- */
+    .left-sidebar {
       display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 8px 16px;
-      background: rgba(0, 0, 0, 0.3);
-      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      flex-direction: column;
       gap: 12px;
+      padding: 16px 12px;
+      background: rgba(0, 0, 0, 0.2);
+      border-right: 1px solid rgba(255, 255, 255, 0.06);
+      overflow-y: auto;
     }
-    .top-left {
-      display: flex;
-      align-items: center;
-      gap: 16px;
+    .sidebar-section {
+      padding: 10px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 10px;
+    }
+    .sidebar-title {
+      font-size: 0.65em;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: #475569;
+      font-weight: 600;
+      margin-bottom: 8px;
     }
     .opponent-info {
       display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .opponent-cards {
-      display: flex;
-      gap: 2px;
-    }
-    .opponent-card {
-      width: 18px;
-      height: 26px;
-      background: linear-gradient(135deg, #334155, #475569);
-      border: 1px solid #64748b;
-      border-radius: 3px;
+      flex-direction: column;
+      gap: 6px;
     }
     .opponent-label {
       font-size: 0.75em;
       color: #94a3b8;
+      font-weight: 500;
     }
-    .top-center {
+    .opponent-cards {
+      display: flex;
+      gap: 2px;
+      flex-wrap: wrap;
+    }
+    .opponent-card {
+      width: 14px;
+      height: 20px;
+      background: linear-gradient(135deg, #334155, #475569);
+      border: 1px solid #64748b;
+      border-radius: 2px;
+    }
+
+    /* --- RIGHT SIDEBAR (Game Log) --- */
+    .right-sidebar {
+      display: flex;
+      flex-direction: column;
+      padding: 16px 12px;
+      background: rgba(0, 0, 0, 0.2);
+      border-left: 1px solid rgba(255, 255, 255, 0.06);
+      overflow: hidden;
+    }
+
+    /* --- CENTER: game area --- */
+    .game-center {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      overflow: hidden;
+    }
+    .status-bar {
       display: flex;
       align-items: center;
+      justify-content: center;
       gap: 12px;
+      padding: 8px 16px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      flex-shrink: 0;
     }
     .turn-badge {
-      padding: 4px 12px;
+      padding: 4px 14px;
       border-radius: 16px;
       background: rgba(99, 102, 241, 0.15);
       border: 1px solid rgba(99, 102, 241, 0.3);
@@ -113,54 +146,14 @@ template.innerHTML = `
       color: #4ade80;
     }
     .step-guide .arrow { color: #334155; font-size: 0.7em; }
-    .top-right {
-      display: flex;
-      gap: 12px;
-      align-items: center;
-    }
-    .opponent-info {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 4px 10px;
-      background: rgba(255, 255, 255, 0.04);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      border-radius: 10px;
-    }
-    .opponent-cards {
-      display: flex;
-      gap: 2px;
-    }
-    .opponent-card {
-      width: 12px;
-      height: 18px;
-      background: linear-gradient(135deg, #334155, #475569);
-      border: 1px solid #64748b;
-      border-radius: 2px;
-    }
-    .opponent-label {
-      font-size: 0.7em;
-      color: #94a3b8;
-      font-weight: 500;
-    }
-    .info-chip {
-      padding: 4px 10px;
-      border-radius: 8px;
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      font-size: 0.7em;
-      color: #94a3b8;
-    }
-    .info-chip strong { color: #e2e8f0; }
-
-    /* --- MIDDLE: game area (table + piles) --- */
     .game-area {
+      flex: 1;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 12px;
-      padding: 12px;
+      gap: 16px;
+      padding: 16px;
       position: relative;
     }
     .table-area {
@@ -168,21 +161,21 @@ template.innerHTML = `
       gap: 8px;
       flex-wrap: wrap;
       justify-content: center;
-      padding: 10px 16px;
+      padding: 12px 16px;
       background: rgba(255, 255, 255, 0.025);
       border: 1px solid rgba(255, 255, 255, 0.06);
       border-radius: 14px;
-      min-height: 46px;
+      min-height: 50px;
     }
     .table-area:empty::after {
       content: 'No phases laid down yet';
-      color: #334155;
+      color: #1e293b;
       font-size: 0.75em;
     }
     .laid-group {
       display: flex;
       gap: 2px;
-      padding: 3px;
+      padding: 4px;
       border: 1px solid rgba(255, 255, 255, 0.1);
       border-radius: 8px;
       background: rgba(255, 255, 255, 0.03);
@@ -198,21 +191,21 @@ template.innerHTML = `
     }
     .piles-row {
       display: flex;
-      gap: 24px;
+      gap: 32px;
       align-items: center;
     }
     .pile {
-      width: 56px;
-      height: 78px;
-      border-radius: 10px;
+      width: 60px;
+      height: 84px;
+      border-radius: 12px;
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
-      font-size: 0.65em;
+      font-size: 0.7em;
       font-weight: 600;
       text-align: center;
-      transition: all 0.15s ease;
+      transition: all 0.2s ease;
     }
     .pile:hover { transform: scale(1.08); }
     .pile:focus-visible { outline: 2px solid #6366f1; outline-offset: 3px; }
@@ -247,8 +240,8 @@ template.innerHTML = `
     .discard-pile card-element {
       position: absolute;
       top: 0; left: 0;
-      --card-width: 56px;
-      --card-height: 78px;
+      --card-width: 60px;
+      --card-height: 84px;
     }
     /* Banners */
     .banner-area {
@@ -280,14 +273,15 @@ template.innerHTML = `
       color: #93c5fd;
     }
 
-    /* --- BOTTOM: hand + action buttons --- */
+    /* --- BOTTOM BAR --- */
     .bottom-bar {
       display: flex;
       flex-direction: column;
       gap: 6px;
-      padding: 8px 16px 12px;
+      padding: 8px 16px 10px;
       background: rgba(0, 0, 0, 0.25);
       border-top: 1px solid rgba(255, 255, 255, 0.06);
+      flex-shrink: 0;
     }
     .actions-row {
       display: flex;
@@ -303,19 +297,16 @@ template.innerHTML = `
       font-size: 0.72em;
       cursor: pointer;
       transition: all 0.15s ease;
-      letter-spacing: 0.2px;
       white-space: nowrap;
     }
     .action-btn:disabled {
       opacity: 0.25;
       cursor: default;
-      transform: none;
       background: rgba(255, 255, 255, 0.05);
       color: #475569;
     }
     .action-btn:not(:disabled):hover { transform: translateY(-1px); }
     .action-btn:focus-visible { outline: 2px solid #6366f1; outline-offset: 2px; }
-    .action-btn.primary { background: linear-gradient(135deg, #6366f1, #8b5cf6); color: #fff; }
     .action-btn.success { background: linear-gradient(135deg, #22c55e, #16a34a); color: #fff; }
     .action-btn.danger { background: linear-gradient(135deg, #ef4444, #dc2626); color: #fff; }
     .action-btn.info { background: linear-gradient(135deg, #3b82f6, #2563eb); color: #fff; }
@@ -354,13 +345,37 @@ template.innerHTML = `
       from { opacity: 0; transform: translateX(-50%) translateY(10px); }
       to { opacity: 1; transform: translateX(-50%) translateY(0); }
     }
-    @media (max-width: 767px) {
-      .top-bar { padding: 6px 8px; }
+
+    /* --- MOBILE RESPONSIVE --- */
+    @media (max-width: 900px) {
+      .game-screen {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto auto 1fr auto;
+      }
+      .left-sidebar {
+        flex-direction: row;
+        padding: 8px;
+        border-right: none;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        gap: 8px;
+        overflow-x: auto;
+        align-items: center;
+      }
+      .left-sidebar .sidebar-section { padding: 6px 8px; }
+      .right-sidebar {
+        display: none;
+      }
+      .status-bar { padding: 6px 8px; }
       .step-guide { display: none; }
-      .game-area { padding: 8px; }
+      .game-area { padding: 8px; gap: 10px; }
+      .bottom-bar { padding: 6px 8px 8px; }
+      .pile { width: 50px; height: 70px; }
+      .discard-pile card-element { --card-width: 50px; --card-height: 70px; }
+      .laid-group card-element { --card-width: 34px; --card-height: 48px; }
     }
     @media (prefers-reduced-motion: reduce) {
       .toast { animation: none; }
+      .draw-pile.draw-ready { animation: none; }
     }
   </style>
 
@@ -372,12 +387,28 @@ template.innerHTML = `
   <!-- Game Screen -->
   <div class="screen game-screen" data-testid="screen-game">
 
-    <!-- TOP BAR -->
-    <div class="top-bar">
-      <div class="top-left">
+    <!-- LEFT SIDEBAR -->
+    <div class="left-sidebar">
+      <div class="sidebar-section">
+        <div class="sidebar-title">Players</div>
         <phase-display></phase-display>
       </div>
-      <div class="top-center">
+      <div class="sidebar-section">
+        <div class="sidebar-title">Opponent</div>
+        <div class="opponent-info">
+          <span class="opponent-label" data-testid="opponent-label">AI (10)</span>
+          <div class="opponent-cards" data-testid="opponent-area"></div>
+        </div>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-title">Scores</div>
+        <score-board></score-board>
+      </div>
+    </div>
+
+    <!-- CENTER -->
+    <div class="game-center">
+      <div class="status-bar">
         <div class="turn-badge" data-testid="turn-indicator"></div>
         <div class="step-guide" data-testid="step-guide">
           <span class="step" data-step="draw">Draw</span>
@@ -387,38 +418,32 @@ template.innerHTML = `
           <span class="step" data-step="discard">Discard</span>
         </div>
       </div>
-      <div class="top-right">
-        <div class="opponent-info">
-          <span class="opponent-label" data-testid="opponent-label">Opponent</span>
-          <div class="opponent-cards" data-testid="opponent-area"></div>
+      <div class="game-area">
+        <div class="banner-area">
+          <div class="phase-ready-banner" data-testid="phase-ready-banner">Ready to lay down your phase!</div>
+          <div class="hit-mode-banner" data-testid="hit-mode-banner">Select 1 card, then click a group on the table</div>
         </div>
-        <score-board></score-board>
+        <div class="table-area" data-testid="table-area" aria-label="Laid-down phases"></div>
+        <div class="piles-row">
+          <div class="pile draw-pile" role="button" tabindex="0" aria-label="Draw pile" data-testid="draw-pile">Draw</div>
+          <div class="pile discard-pile" role="button" tabindex="0" aria-label="Discard pile" data-testid="discard-pile"></div>
+        </div>
+      </div>
+      <div class="bottom-bar">
+        <div class="actions-row" data-testid="action-buttons">
+          <button class="action-btn success" data-testid="btn-laydown" disabled>Lay Down</button>
+          <button class="action-btn info" data-testid="btn-hit" disabled>Hit</button>
+          <button class="action-btn danger" data-testid="btn-discard" disabled>Discard</button>
+          <button class="action-btn ghost" data-testid="btn-undo" disabled>Undo</button>
+          <button class="action-btn ghost" data-testid="btn-menu">Menu</button>
+        </div>
+        <player-hand></player-hand>
       </div>
     </div>
 
-    <!-- GAME AREA -->
-    <div class="game-area">
-      <div class="banner-area">
-        <div class="phase-ready-banner" data-testid="phase-ready-banner">Ready to lay down your phase!</div>
-        <div class="hit-mode-banner" data-testid="hit-mode-banner">Select 1 card, then click a group on the table</div>
-      </div>
-      <div class="table-area" data-testid="table-area" aria-label="Laid-down phases"></div>
-      <div class="piles-row">
-        <div class="pile draw-pile" role="button" tabindex="0" aria-label="Draw pile" data-testid="draw-pile">Draw</div>
-        <div class="pile discard-pile" role="button" tabindex="0" aria-label="Discard pile" data-testid="discard-pile"></div>
-      </div>
-    </div>
-
-    <!-- BOTTOM BAR -->
-    <div class="bottom-bar">
-      <div class="actions-row" data-testid="action-buttons">
-        <button class="action-btn success" data-testid="btn-laydown" disabled>Lay Down</button>
-        <button class="action-btn info" data-testid="btn-hit" disabled>Hit</button>
-        <button class="action-btn danger" data-testid="btn-discard" disabled>Discard</button>
-        <button class="action-btn ghost" data-testid="btn-undo" disabled>Undo</button>
-        <button class="action-btn ghost" data-testid="btn-menu">Menu</button>
-      </div>
-      <player-hand></player-hand>
+    <!-- RIGHT SIDEBAR (Game Log) -->
+    <div class="right-sidebar">
+      <game-log></game-log>
     </div>
 
   </div>
@@ -429,7 +454,6 @@ template.innerHTML = `
   <!-- Overlays -->
   <rules-panel></rules-panel>
   <phase-editor></phase-editor>
-  <game-log style="display:none"></game-log>
 `;
 
 export class GameBoard extends HTMLElement {
