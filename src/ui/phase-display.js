@@ -15,47 +15,45 @@ template.innerHTML = `
     .phase-container {
       display: flex;
       flex-direction: column;
-      gap: 8px;
-      padding: 12px;
-      background: rgba(255, 255, 255, 0.04);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      border-radius: 12px;
-      backdrop-filter: blur(4px);
+      gap: 10px;
     }
     .player-phase {
       display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 0.85em;
+      flex-direction: column;
+      gap: 3px;
+      font-size: 0.8em;
     }
     .player-name {
       font-weight: 600;
-      min-width: 80px;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
       color: #e2e8f0;
+      font-size: 0.9em;
     }
     .phase-info {
-      flex: 1;
-      color: rgba(255,255,255,0.85);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
     }
     .phase-number {
       background: linear-gradient(135deg, #6366f1, #8b5cf6);
       color: #fff;
-      border-radius: 6px;
-      padding: 2px 8px;
+      border-radius: 4px;
+      padding: 1px 6px;
       font-weight: 700;
-      font-size: 0.85em;
+      font-size: 0.8em;
+      white-space: nowrap;
     }
     .phase-desc {
-      margin-left: 6px;
-      font-size: 0.8em;
-      color: #94a3b8;
+      font-size: 0.75em;
+      color: #64748b;
     }
     .completed-indicator {
       color: #4ade80;
       font-weight: 600;
+      font-size: 0.8em;
     }
     @media (max-width: 480px) {
       .phase-desc { display: none; }
