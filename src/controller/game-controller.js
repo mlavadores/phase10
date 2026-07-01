@@ -296,8 +296,11 @@ export class GameController {
       this._board.playerHand.clearSelection();
       this._board.addLog(`<span class="player-name">${localPlayer.name}</span> hit a card onto a group`);
       
+      // Re-fetch player from UPDATED state to check hand length
+      const updatedPlayer = this._getLocalPlayer();
+      
       // Check if player went out (hand empty after hit)
-      if (localPlayer.hand.length === 0) {
+      if (updatedPlayer && updatedPlayer.hand.length === 0) {
         this._hitModeActive = false;
         this._board.setHitMode(false);
         this._afterDiscard(); // Triggers round end

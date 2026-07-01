@@ -12,6 +12,8 @@
 
 import * as easyStrategy from './strategy-easy.js';
 import * as hardStrategy from './strategy-hard.js';
+import { getPhaseDefinition } from '../game-engine/phase-validator.js';
+import { getPlayerPhaseNumber } from '../game-engine/rules.js';
 
 /**
  * Get a random thinking delay (500ms - 3000ms).
@@ -83,6 +85,7 @@ export async function takeTurn(state, playerId, difficulty) {
   }
 
   // 3. HIT — attempt if phase is already down (this turn OR previous turns)
+  let hitsPerformed = 0;
   if (player.hasLaidDown || justLaidDown) {
     await wait(getThinkingDelay());
     const hits = strategy.attemptHits(state, playerId);
@@ -97,31 +100,46 @@ export async function takeTurn(state, playerId, difficulty) {
           targetGroupIndex: hit.targetGroupIndex
         }
       });
+      hitsPerformed++;
     }
   }
 
-  // 4. DISCARD
-  await wait(getThinkingDelay());
-  const discardCard = strategy.chooseDiscard(
-    state,
-    playerId,
-    drawSource === 'discard' ? drawnCard : null
-  );
-  actions.push({
-    type: 'discard',
-    playerId,
-    payload: { card: discardCard }
-  });
+  // Calculate remaining cards after lay-down and hits
+  // Player starts with hand cards, loses cards from laydown + hits
+  let remainingCards = player.hand.length + 1; // +1 for the drawn card
+  if (justLaidDown) {
+    const definition = getPhaseDefinition(getPlayerPhaseNumber(state, playerId));
+    if (definition) {
+      const laidDownCount = definition.groups.reduce((sum, g) => sum + g.count, 0);
+      remainingCards -= laidDownCount;
+    }
+  }
+  remainingCards -= hitsPerformed;
 
-  // Check if discarding a Skip card (auto-targets opponent in 2-player)
-  if (discardCard.type === 'skip') {
-    const opponent = state.players.find(p => p.id !== playerId);
-    if (opponent) {
-      actions.push({
-        type: 'skip-target',
-        playerId,
-        payload: { targetPlayerId: opponent.id }
-      });
+  // 4. DISCARD — only if player still has cards
+  if (remainingCards > 0) {
+    await wait(getThinkingDelay());
+    const discardCard = strategy.chooseDiscard(
+      state,
+      playerId,
+      drawSource === 'discard' ? drawnCard : null
+    );
+    actions.push({
+      type: 'discard',
+      playerId,
+      payload: { card: discardCard }
+    });
+
+    // Check if discarding a Skip card (auto-targets opponent in 2-player)
+    if (discardCard.type === 'skip') {
+      const opponent = state.players.find(p => p.id !== playerId);
+      if (opponent) {
+        actions.push({
+          type: 'skip-target',
+          playerId,
+          payload: { targetPlayerId: opponent.id }
+        });
+      }
     }
   }
 

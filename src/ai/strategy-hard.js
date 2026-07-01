@@ -70,10 +70,33 @@ export function chooseDiscard(state, playerId, drawnFromDiscard) {
   const opponent = state.players.find(p => p.id !== playerId);
   const opponentPhaseNumber = opponent ? getPlayerPhaseNumber(state, opponent.id) : 1;
 
-  // Score each card by utility to us, and danger to opponent
+  // Identify cards that can be hit — NEVER discard these
+  const hittableIds = new Set();
+  if (player.hasLaidDown) {
+    for (const card of player.hand) {
+      if (card.type === 'skip') continue;
+      for (const targetPlayer of state.players) {
+        if (targetPlayer.laidDownGroups.length === 0) continue;
+        const targetPhase = getPlayerPhaseNumber(state, targetPlayer.id);
+        const definition = getPhaseDefinition(targetPhase);
+        if (!definition) continue;
+        for (let gi = 0; gi < targetPlayer.laidDownGroups.length; gi++) {
+          const group = targetPlayer.laidDownGroups[gi];
+          const groupDef = definition.groups[gi];
+          if (!groupDef) continue;
+          if (validateHit(card, group, groupDef)) {
+            hittableIds.add(card.id);
+          }
+        }
+      }
+    }
+  }
+
+  // Score each card, excluding hittable and non-discardable cards
   const scored = player.hand
     .filter(c => {
       if (drawnFromDiscard && c.id === drawnFromDiscard.id) return false;
+      if (hittableIds.has(c.id)) return false; // NEVER discard hittable cards
       return true;
     })
     .map(card => {
@@ -81,13 +104,19 @@ export function chooseDiscard(state, playerId, drawnFromDiscard) {
       const opponentDanger = estimateOpponentNeed(card, opponentPhaseNumber);
 
       // Lower score = better to discard
-      // We want to discard cards with low utility to us AND low danger to opponent
       const discardScore = ourUtility + (opponentDanger * 0.5);
       return { card, discardScore };
     })
     .sort((a, b) => a.discardScore - b.discardScore);
 
-  if (scored.length === 0) return player.hand[0];
+  if (scored.length === 0) {
+    // All cards are hittable or restricted — fall back to lowest utility
+    const fallback = player.hand
+      .filter(c => !(drawnFromDiscard && c.id === drawnFromDiscard.id))
+      .map(card => ({ card, discardScore: evaluateCardUtility(card, player.hand, phaseNumber) }))
+      .sort((a, b) => a.discardScore - b.discardScore);
+    return fallback.length > 0 ? fallback[0].card : player.hand[0];
+  }
 
   // Discard the least valuable card that's also least helpful to opponent
   return scored[0].card;
